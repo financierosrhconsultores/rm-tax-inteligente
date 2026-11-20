@@ -1,0 +1,35 @@
+import streamlit as st
+from decimal import Decimal, ROUND_HALF_UP
+
+st.set_page_config(page_title='RM Tax Inteligente | Demo', page_icon='📊', layout='wide')
+st.title('RM Tax Inteligente')
+st.caption('Demostración pública · El Salvador · Utilice únicamente datos ficticios')
+st.warning('Prototipo educativo: no es una declaración oficial, no guarda información y no sustituye una revisión tributaria profesional.')
+panel, iva, obligaciones = st.tabs(['Inicio', 'Simulador IVA', 'Obligaciones'])
+with panel:
+    st.subheader('Panel de demostración')
+    a,b,c=st.columns(3)
+    a.metric('Empresas de ejemplo','2')
+    b.metric('Declaraciones de ejemplo','3')
+    c.metric('Alertas de ejemplo','1')
+    st.info('Esta versión pública es una demostración sin registro de usuarios ni almacenamiento de datos.')
+with iva:
+    st.subheader('Cálculo preliminar de IVA')
+    st.caption('Supuesto simplificado: operaciones gravadas al 13 %, sin ajustes, retenciones ni percepciones.')
+    sales=st.number_input('Ventas gravadas sin IVA ($)',min_value=0.0,step=100.0)
+    purchases=st.number_input('Compras con crédito fiscal admisible sin IVA ($)',min_value=0.0,step=100.0)
+    carry=st.number_input('Remanente anterior ($)',min_value=0.0,step=10.0)
+    def money(v): return Decimal(str(v)).quantize(Decimal('0.01'),rounding=ROUND_HALF_UP)
+    debit=(money(sales)*Decimal('0.13')).quantize(Decimal('0.01'),rounding=ROUND_HALF_UP)
+    credit=(money(purchases)*Decimal('0.13')).quantize(Decimal('0.01'),rounding=ROUND_HALF_UP)
+    net=debit-credit-money(carry)
+    x,y,z=st.columns(3)
+    x.metric('Débito fiscal',f'$ {debit:,.2f}')
+    y.metric('Crédito fiscal',f'$ {credit:,.2f}')
+    z.metric('Resultado estimado',f'$ {net:,.2f}')
+    st.write('**Interpretación:** '+(f'Saldo estimado por pagar: $ {net:,.2f}' if net>0 else f'Remanente estimado: $ {-net:,.2f}' if net<0 else 'Saldo estimado: $ 0.00'))
+    st.caption('La liquidación real puede diferir por reglas tributarias, documentación y operaciones especiales.')
+with obligaciones:
+    st.subheader('Control de obligaciones (ejemplo)')
+    st.dataframe([{'Empresa':'Empresa Demo A','Obligación':'IVA F-07','Estado':'Pendiente (ejemplo)'},{'Empresa':'Empresa Demo B','Obligación':'Pago a cuenta F-14','Estado':'Presentada (ejemplo)'}],hide_index=True,use_container_width=True)
+    st.caption('No se incluyen vencimientos oficiales ni conexión con Hacienda.')
