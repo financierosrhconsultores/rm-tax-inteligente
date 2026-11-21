@@ -88,7 +88,14 @@ try:
         .eq("usuario_id", usuario.id)
         .execute()
     )
-    st.session_state.rm_empresas = resultado_empresas.data
+
+    st.sidebar.divider()
+    st.sidebar.subheader("Empresas autorizadas")
+    st.sidebar.metric(
+        "Empresas asignadas",
+        len(st.session_state.rm_empresas)
+    )
+
 
 except Exception as error:
     st.session_state.rm_empresas = []
