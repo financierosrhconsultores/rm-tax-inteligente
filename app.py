@@ -2,7 +2,99 @@ import streamlit as st
 import pandas as pd
 from decimal import Decimal, ROUND_HALF_UP
 
-st.set_page_config(page_title='RM Tax Inteligente', page_icon='📊', layout='wide')
+
+# AUTENTICACION RM TAX INTELIGENTE
+from supabase import create_client
+
+try:
+    supabase = create_client(
+        st.secrets["supabase"]["url"],
+        st.secrets["supabase"]["key"]
+    )
+except Exception:
+    st.error("No se pudo configurar Supabase.")
+    st.stop()
+
+if "rm_session" not in st.session_state:
+    st.session_state.rm_session = None
+
+if st.session_state.rm_session is not None:
+    try:
+        sesion = st.session_state.rm_session
+        actualizada = supabase.auth.set_session(
+            sesion["access_token"],
+            sesion["refresh_token"]
+        )
+        st.session_state.rm_session = {
+            "access_token": actualizada.session.access_token,
+            "refresh_token": actualizada.session.refresh_token
+        }
+        usuario = actualizada.user
+    except Exception:
+        st.session_state.rm_session = None
+        usuario = None
+else:
+    usuario = None
+
+if usuario is None:
+    st.title("RM Tax Inteligente")
+    st.subheader("Acceso seguro")
+    st.caption("RM Consultores Financieros")
+
+    with st.form("formulario_acceso"):
+        correo = st.text_input("Correo electronico")
+        clave = st.text_input(
+            "Contrasena",
+            type="password"
+        )
+        ingresar = st.form_submit_button(
+            "Iniciar sesion"
+        )
+
+    if ingresar:
+        try:
+            respuesta = supabase.auth.sign_in_with_password({
+                "email": correo.strip(),
+                "password": clave
+            })
+            if respuesta.session:
+                st.session_state.rm_session = {
+                    "access_token": respuesta.session.access_token,
+                    "refresh_token": respuesta.session.refresh_token
+                }
+                st.rerun()
+            else:
+                st.error("No se pudo iniciar sesion.")
+        except Exception:
+            st.error("Credenciales incorrectas o acceso no disponible.")
+
+    st.stop()
+
+with st.sidebar:
+    st.caption("Sesion iniciada")
+    st.write(usuario.email)
+    if st.button("Cerrar sesion"):
+        try:
+            supabase.auth.sign_out()
+        finally:
+            st.session_state.rm_session = None
+            st.rerun()
+
+# CONSULTAR EMPRESAS AUTORIZADAS
+try:
+    resultado_empresas = (
+        supabase.table("usuarios_empresas")
+        .select("empresa_id, rol")
+        .eq("usuario_id", usuario.id)
+        .execute()
+    )
+    st.session_state.rm_empresas = resultado_empresas.data
+except Exception:
+    st.session_state.rm_empresas = []
+    st.warning(
+        "No se pudieron consultar los permisos de empresas."
+    )
+
 st.markdown('''<style> [data-testid="stAppViewContainer"]{background:#f5f7fb} [data-testid="stSidebar"]{background:#122741} [data-testid="stSidebar"] *{color:white!important} .block-container{max-width:1200px;padding-top:2rem} h1,h2,h3{color:#142942!important} [data-testid="stMetric"]{background:white;border:1px solid #e2e8f0;border-radius:14px;padding:18px} .hero{background:linear-gradient(115deg,#122741,#24537a);border-radius:18px;padding:30px;color:white;margin-bottom:20px}.hero h1{color:white!important;margin:0}.hero p{color:#d5e1ef} </style>''',unsafe_allow_html=True)
 with st.sidebar:
     st.markdown('## ◈ RM TAX')
