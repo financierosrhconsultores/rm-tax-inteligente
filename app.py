@@ -89,11 +89,17 @@ try:
         .execute()
     )
     st.session_state.rm_empresas = resultado_empresas.data
-except Exception:
+
+except Exception as error:
     st.session_state.rm_empresas = []
     st.warning(
         "No se pudieron consultar los permisos de empresas."
     )
+    st.error(
+        f"Tipo de error: {type(error).__name__}"
+    )
+    st.code(str(error)[:500])
+
 
 st.markdown('''<style> [data-testid="stAppViewContainer"]{background:#f5f7fb} [data-testid="stSidebar"]{background:#122741} [data-testid="stSidebar"] *{color:white!important} .block-container{max-width:1200px;padding-top:2rem} h1,h2,h3{color:#142942!important} [data-testid="stMetric"]{background:white;border:1px solid #e2e8f0;border-radius:14px;padding:18px} .hero{background:linear-gradient(115deg,#122741,#24537a);border-radius:18px;padding:30px;color:white;margin-bottom:20px}.hero h1{color:white!important;margin:0}.hero p{color:#d5e1ef} </style>''',unsafe_allow_html=True)
 with st.sidebar:
