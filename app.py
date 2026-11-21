@@ -88,9 +88,14 @@ try:
 
 except KeyError:
     st.sidebar.error("Falta configurar Secrets")
+
 except urllib.error.HTTPError as error:
-    st.sidebar.error(
-        f"Error de conexion HTTP {error.code}"
-    )
+    st.sidebar.error(f"Error HTTP {error.code}")
+    if error.code == 401:
+        st.sidebar.info(
+            "Supabase rechazo la solicitud. "
+            "Se requiere revisar la autenticacion."
+        )
+
 except Exception:
     st.sidebar.error("No se pudo conectar a Supabase")
