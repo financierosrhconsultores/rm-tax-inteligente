@@ -68,13 +68,14 @@ try:
     url = st.secrets["supabase"]["url"].rstrip("/")
     key = st.secrets["supabase"]["key"]
 
+
     request = urllib.request.Request(
         f"{url}/rest/v1/empresas?select=id&limit=1",
         headers={
-    "apikey": key
-}
+            "apikey": key
         }
     )
+
 
     with urllib.request.urlopen(request, timeout=10) as response:
         if response.status == 200:
