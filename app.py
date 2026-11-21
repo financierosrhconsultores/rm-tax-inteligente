@@ -56,3 +56,40 @@ else:
     st.write('RM Tax Inteligente es un prototipo para validaciones tributarias y gestión contable futura.')
     st.write('Próximos módulos: autenticación, base de datos segura, gestión multiempresa, anexos y validaciones fiscales.')
 st.divider();st.caption('© RM Consultores Financieros · Demostración 1.1')
+
+# RM Tax Inteligente - Prueba de conexion Supabase
+import urllib.request
+import urllib.error
+
+st.sidebar.divider()
+st.sidebar.subheader("Conexion en la nube")
+
+try:
+    url = st.secrets["supabase"]["url"].rstrip("/")
+    key = st.secrets["supabase"]["key"]
+
+    request = urllib.request.Request(
+        f"{url}/rest/v1/empresas?select=id&limit=1",
+        headers={
+            "apikey": key,
+            "Authorization": f"Bearer {key}"
+        }
+    )
+
+    with urllib.request.urlopen(request, timeout=10) as response:
+        if response.status == 200:
+            st.sidebar.success("Supabase conectado")
+            st.sidebar.caption(
+                "Conexion verificada. Falta habilitar usuarios."
+            )
+        else:
+            st.sidebar.warning("Revisar conexion")
+
+except KeyError:
+    st.sidebar.error("Falta configurar Secrets")
+except urllib.error.HTTPError as error:
+    st.sidebar.error(
+        f"Error de conexion HTTP {error.code}"
+    )
+except Exception:
+    st.sidebar.error("No se pudo conectar a Supabase")
