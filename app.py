@@ -71,8 +71,8 @@ try:
     request = urllib.request.Request(
         f"{url}/rest/v1/empresas?select=id&limit=1",
         headers={
-            "apikey": key,
-            "Authorization": f"Bearer {key}"
+    "apikey": key
+}
         }
     )
 
